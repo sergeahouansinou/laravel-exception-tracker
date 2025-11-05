@@ -1,0 +1,25 @@
+{
+    "name": "sergeahouansinou/laravel-error-tracker",
+    "description": "A simple self-hosted Laravel package for tracking and logging exceptions in your projects.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ExceptionTracker\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ExceptionTracker\\ExceptionTrackerServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
+    }
+}
