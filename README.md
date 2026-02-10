@@ -4,136 +4,153 @@
 [![Packagist Downloads](https://img.shields.io/packagist/dt/sergeahouansinou/laravel-exception-tracker.svg?style=flat-square)](https://packagist.org/packages/sergeahouansinou/laravel-exception-tracker)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 
-Un package Laravel simple, auto-hébergé et open source pour surveiller, enregistrer et notifier par e-mail les exceptions de votre application — à la manière de Sentry, mais 100% sous votre contrôle. Pas de données envoyées à des tiers !
+A self-hosted Laravel package for tracking and logging exceptions with automatic email notifications. Inspired by Sentry, but 100% under your control — no data sent to third parties.
 
-## 🧩 Table des matières
+## ✨ Features
 
-- [Aperçu](#-aperçu)
-- [Fonctionnalités](#-fonctionnalités)
-- [Installation](#️-installation)
-- [Configuration](#️-configuration)
-- [Utilisation](#-utilisation)
-- [API REST](#-api-rest)
-- [Commandes Artisan](#-commandes-artisan)
-- [Contribution](#-contribution)
-- [Licence](#-licence)
-
-## 🔍 Aperçu
-
-Laravel Exception Tracker capture automatiquement toutes les exceptions et erreurs fatales de votre application Laravel. Il les enregistre dans une table dédiée (`exception_logs`) et envoie une notification e-mail instantanée contenant les détails de l’erreur.
-
-🧠 Idéal pour les équipes qui veulent un système de suivi d’erreurs auto-hébergé, sans dépendre de Sentry ou Bugsnag. Tout reste sur votre serveur !
-
-## ✨ Fonctionnalités
-
-- 📦 Capture automatique des exceptions via le hook `report()` de Laravel.
-- 💾 Sauvegarde en base de données (table `exception_logs` avec champs : id, type, code, message, file, line, trace, occurred_at).
-- 📬 Notification instantanée par e-mail (configurable avec destinataires multiples).
-- ⚙️ Middleware optionnel pour tracker des exceptions sur des routes spécifiques.
-- 📡 API REST pour consulter, filtrer et supprimer les logs (protégée par authentification).
-- 🧹 Commande Artisan pour purger les anciens logs (par date ou quantité).
-- 🔒 100% privé : Aucun envoi de données externes.
-- 🧰 Compatible avec Laravel 9 à 12.
-- 📊 Support pour traces stack complètes et contextes (request, user, etc.).
+- 📦 **Automatic exception capture** via Laravel's `reportable()` hook — never replaces the existing Handler
+- 💾 **Database storage** in a dedicated `exception_logs` table
+- 📬 **Professional HTML email notifications** with a Sentry-inspired template
+- 🔒 **Sensitive data filtering** (passwords, tokens, secrets masked automatically)
+- ⚙️ **Configurable exception filtering** — ignore ValidationException, AuthenticationException, etc.
+- 🚀 **Async email sending** via Laravel queues (non-blocking)
+- 🧹 **Artisan command** to purge old logs
+- 📡 **REST API** to consult exception logs
+- 🧰 Compatible with **Laravel 9 to 12**
 
 ## ⚙️ Installation
 
-### 1. Ajouter le package via Composer
+### 1. Install via Composer
 
 ```bash
 composer require sergeahouansinou/laravel-exception-tracker
 ```
 
-### 2. Publier la configuration et les migrations
+### 2. Publish configuration and views
 
 ```bash
-php artisan vendor:publish --provider="Sergeahouansinou\\ExceptionTracker\\ExceptionTrackerServiceProvider" --tag="config"
-php artisan vendor:publish --provider="Sergeahouansinou\\ExceptionTracker\\ExceptionTrackerServiceProvider" --tag="migrations"
+php artisan vendor:publish --tag=exception-tracker-config
+php artisan vendor:publish --tag=exception-tracker-views
 ```
 
-### 3. Exécuter les migrations
+### 3. Run migrations
 
 ```bash
 php artisan migrate
 ```
 
-### 4. Configurer l'envoi d'e-mails
+### 4. Configure your `.env`
 
-Assurez-vous que votre fichier `.env` est configuré pour l'envoi d'e-mails (ex. via Mailtrap pour les tests).
+```env
+EXCEPTION_TRACKER_ENABLED=true
+EXCEPTION_TRACKER_EMAIL_ENABLED=true
+EXCEPTION_TRACKER_RECIPIENTS=admin@example.com,dev@example.com
+EXCEPTION_TRACKER_QUEUE_ENABLED=true
+EXCEPTION_TRACKER_QUEUE_CONNECTION=null
+EXCEPTION_TRACKER_QUEUE_NAME=default
+```
 
 ## 🛠️ Configuration
 
-Le fichier de configuration est publié dans `config/exception-tracker.php`. Voici un exemple :
+The published config file (`config/exception-tracker.php`) supports:
+
+| Option | Description | Default |
+|---|---|---|
+| `enabled` | Enable/disable exception tracking | `true` |
+| `email_enabled` | Enable/disable email notifications | `true` |
+| `recipients` | List of email addresses to notify | `[]` |
+| `queue.enabled` | Send emails via queue (async) | `true` |
+| `queue.connection` | Queue connection name | `null` |
+| `queue.queue` | Queue name | `default` |
+| `ignored_exceptions` | Exception classes to skip | ValidationException, AuthenticationException, etc. |
+| `disabled_environments` | Environments where tracking is disabled | `['local', 'testing']` |
+| `sensitive_fields` | Fields to mask in request data | `['password', 'token', 'secret', ...]` |
+| `stack_trace_limit` | Max stack trace frames | `20` |
+| `max_days` | Days to retain logs | `30` |
+
+## 📧 Email Template
+
+The email template is a professional, responsive HTML design inspired by Sentry, with clear sections:
+
+- **Error Summary** — Exception class, message, file and line
+- **Stack Trace** — Formatted, limited, monospace display
+- **Request Details** — URL, method, IP address
+- **Request Headers & Body** — With sensitive data masked
+- **Authenticated User** — ID and email
+- **Environment** — App name, environment, PHP/Laravel versions, server, timestamp, request ID
+
+The template is publishable and fully customizable:
+
+```bash
+php artisan vendor:publish --tag=exception-tracker-views
+```
+
+## 📝 Usage
+
+### Automatic Capture
+
+The package hooks into Laravel's exception handler via `reportable()`. All unhandled exceptions are automatically captured and reported — no code changes needed.
+
+### Manual Tracking
 
 ```php
-<?php
+use ExceptionTracker\ExceptionTracker;
 
-return [
-    'enabled' => env('EXCEPTION_TRACKER_ENABLED', true),  // Activer/désactiver le tracking
-    'notify_emails' => explode(',', env('EXCEPTION_TRACKER_NOTIFY_EMAILS', 'admin@example.com')),  // Destinataires des notifications
-    'ignore_exceptions' => [  // Exceptions à ignorer
-        \Illuminate\Validation\ValidationException::class,
-    ],
-    'purge_days' => 30,  // Nombre de jours avant purge automatique
-];
+try {
+    // risky operation
+} catch (\Throwable $e) {
+    ExceptionTracker::handle($e);
+}
 ```
 
-Ajoutez ces variables à votre `.env` :
-
-```
-EXCEPTION_TRACKER_ENABLED=true
-EXCEPTION_TRACKER_NOTIFY_EMAILS=admin@example.com,dev@example.com
-```
-
-## 📝 Utilisation
-
-### Capture Automatique
-Le package surcharge automatiquement le handler d'exceptions de Laravel. Toute exception non gérée sera loguée et notifiée.
-
-### Middleware
-Ajoutez le middleware à vos routes pour un tracking ciblé :
+Or use the helper function:
 
 ```php
-// Dans web.php ou api.php
-Route::middleware('exception-tracker')->group(function () {
-    // Vos routes ici
+exception_tracker_log($e);
+```
+
+### Middleware (Optional)
+
+For route-specific tracking:
+
+```php
+use ExceptionTracker\Http\Middleware\TrackExceptions;
+
+Route::middleware(TrackExceptions::class)->group(function () {
+    // your routes
 });
 ```
 
-### Exemple de Log
-Un log typique en BD ressemblerait à :
+## 📡 REST API
 
-| id | type              | code | message                  | file                  | line | trace              | occurred_at         |
-|----|-------------------|------|--------------------------|-----------------------|------|--------------------|---------------------|
-| 1  | RuntimeException | 500  | Something went wrong    | /app/Controller.php  | 42   | [stack trace]     | 2025-11-05 10:00:00 |
+- `GET /api/exception-tracker` — List exception logs (paginated)
+- `GET /api/exception-tracker/{id}` — Get a single exception log
 
-### Notification E-mail
-L'e-mail inclut : type d'erreur, message, fichier/ligne, trace complète, et URL de la request.
+## 🧹 Artisan Commands
 
-## 📡 API REST
+```bash
+# Purge old exception logs
+php artisan exception-tracker:clear
+```
 
-Endpoints protégés (utilisez Sanctum ou similaire pour l'auth) :
+## 🏗️ Architecture
 
-- `GET /api/exception-logs` : Lister les logs (avec pagination et filtres).
-- `GET /api/exception-logs/{id}` : Détails d'un log.
-- `DELETE /api/exception-logs/{id}` : Supprimer un log.
+| Class | Role |
+|---|---|
+| `ExceptionTrackerServiceProvider` | Registers config, views, migrations, routes, commands, and hooks into `reportable()` |
+| `ExceptionTracker` | Orchestrator — filters, builds payload, stores, and notifies |
+| `PayloadBuilder` | Builds structured error payloads with HTTP context, user, and environment |
+| `ExceptionOccurred` | Mailable class for sending HTML email notifications |
+| `ExceptionLog` | Eloquent model for the `exception_logs` table |
+| `TrackExceptions` | Middleware for route-specific exception tracking |
 
-Ajoutez les routes dans votre `routes/api.php` si nécessaire.
+## 🔒 Security & Performance
 
-## 🧹 Commandes Artisan
+- **Fail-safe**: All internal errors are caught and logged — never crashes the host application
+- **Non-blocking**: Email sending via Laravel queues by default
+- **Data privacy**: Sensitive fields (passwords, tokens, secrets) are masked automatically
+- **No host modification**: Uses `reportable()` — never replaces or wraps the Laravel exception handler
 
-- Purger les anciens logs :
-  ```bash
-  php artisan exception-tracker:purge
-  ```
+## 📄 License
 
-## 🤝 Contribution
-
-Contributions bienvenues ! Forkez le dépôt, créez une branche, et soumettez une pull request. Respectez les standards PSR-12 pour le code PHP.
-
-- Signalez les bugs via les issues.
-- Suggestions : Ajout de dashboard, support pour autres notificateurs (Slack, Discord).
-
-## 📄 Licence
-
-Ce package est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT License. See [LICENSE](LICENSE) for details.
