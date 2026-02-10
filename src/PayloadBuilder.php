@@ -139,9 +139,7 @@ class PayloadBuilder
                 return '********';
             }
             if (is_array($value)) {
-                return self::filterSensitive($value, array_map(function ($f) {
-                    return $f;
-                }, $lowered));
+                return self::filterSensitive($value, $lowered);
             }
             return $value;
         })->all();
