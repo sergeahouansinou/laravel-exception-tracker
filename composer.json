@@ -1,5 +1,5 @@
 {
-    "name": "sergeahouansinou/laravel-error-tracker",
+    "name": "sergeahouansinou/laravel-exception-tracker",
     "description": "A simple self-hosted Laravel package for tracking and logging exceptions in your projects.",
     "type": "library",
     "license": "MIT",
