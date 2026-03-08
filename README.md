@@ -151,6 +151,21 @@ php artisan exception-tracker:clear
 - **Data privacy**: Sensitive fields (passwords, tokens, secrets) are masked automatically
 - **No host modification**: Uses `reportable()` — never replaces or wraps the Laravel exception handler
 
+## 🚀 Packagist Auto-Deployment
+
+This repository is configured to automatically notify [Packagist](https://packagist.org) whenever a commit is pushed to `main`/`master` or a new release is published, so the package is always up to date.
+
+### Required GitHub Secrets
+
+Add the following secrets to your GitHub repository (**Settings → Secrets and variables → Actions**):
+
+| Secret | Description |
+|---|---|
+| `PACKAGIST_USERNAME` | Your Packagist username |
+| `PACKAGIST_TOKEN` | Your Packagist API token (found on your [Packagist profile](https://packagist.org/profile/)) |
+
+Once these secrets are set, every push to `main`/`master` and every published release will automatically trigger a Packagist package update.
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.

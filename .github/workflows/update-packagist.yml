@@ -1,0 +1,22 @@
+name: Update Packagist
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  release:
+    types: [published]
+
+jobs:
+  packagist:
+    runs-on: ubuntu-latest
+    permissions: {}
+
+    steps:
+      - name: Notify Packagist of update
+        run: |
+          curl -sS -XPOST \
+            -H 'content-type:application/json' \
+            'https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}' \
+            -d '{"repository":{"url":"${{ github.server_url }}/${{ github.repository }}"}}'
