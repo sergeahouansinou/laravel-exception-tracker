@@ -18,6 +18,90 @@ A self-hosted Laravel package for tracking and logging exceptions with automatic
 - 📡 **REST API** to consult exception logs
 - 🧰 Compatible with **Laravel 9 to 12**
 
+## 📋 Requirements
+
+- **PHP** >= 8.0
+- **Laravel** 9, 10, 11, or 12
+- A configured **database** connection (MySQL, PostgreSQL, SQLite, etc.)
+- A configured **mail** driver (for email notifications)
+
+## 🚀 Quick Start — Adding to a Laravel Project
+
+Follow these steps to integrate Laravel Exception Tracker into a new or existing Laravel project.
+
+### Step 1 — Create a Laravel project (skip if you already have one)
+
+```bash
+composer create-project laravel/laravel my-project
+cd my-project
+```
+
+### Step 2 — Install the package via Composer
+
+```bash
+composer require sergeahouansinou/laravel-exception-tracker
+```
+
+> **Auto-discovery**: The service provider (`ExceptionTrackerServiceProvider`) is registered automatically via Laravel's package auto-discovery. No manual registration in `config/app.php` is needed.
+
+### Step 3 — Publish configuration and views
+
+```bash
+php artisan vendor:publish --tag=exception-tracker-config
+php artisan vendor:publish --tag=exception-tracker-views
+```
+
+### Step 4 — Run migrations
+
+```bash
+php artisan migrate
+```
+
+This creates the `exception_logs` table in your database.
+
+### Step 5 — Configure your `.env`
+
+Add the following variables to your `.env` file:
+
+```env
+# Exception Tracker
+EXCEPTION_TRACKER_ENABLED=true
+EXCEPTION_TRACKER_EMAIL_ENABLED=true
+EXCEPTION_TRACKER_RECIPIENTS=admin@example.com,dev@example.com
+EXCEPTION_TRACKER_QUEUE_ENABLED=true
+EXCEPTION_TRACKER_QUEUE_CONNECTION=null
+EXCEPTION_TRACKER_QUEUE_NAME=default
+```
+
+> **Note**: By default, tracking is **disabled** in the `local` and `testing` environments. To enable it locally, remove `local` from the `disabled_environments` array in `config/exception-tracker.php`.
+
+### Step 6 — Configure mail (for email notifications)
+
+Make sure your Laravel project has a working mail driver configured in `.env`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=your@email.com
+MAIL_PASSWORD=your-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@example.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Step 7 — (Optional) Start a queue worker for async emails
+
+If `EXCEPTION_TRACKER_QUEUE_ENABLED=true` (the default), emails are sent via a Laravel queue. Start a worker to process them:
+
+```bash
+php artisan queue:work
+```
+
+That's it! Laravel Exception Tracker is now active. Any unhandled exception in your application will be automatically captured, stored in the database, and reported by email.
+
+---
+
 ## ⚙️ Installation
 
 ### 1. Install via Composer
