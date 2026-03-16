@@ -3,6 +3,7 @@
 namespace ExceptionTracker\Http\Controllers;
 
 use ExceptionTracker\Models\ExceptionLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ExceptionController
@@ -20,7 +21,7 @@ class ExceptionController
         ]);
     }
 
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
         if (! ctype_digit((string) $id) || (int) $id < 1) {
             abort(400, 'Invalid exception log ID.');

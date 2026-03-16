@@ -4,11 +4,13 @@ namespace ExceptionTracker\Http\Middleware;
 
 use Closure;
 use ExceptionTracker\ExceptionTracker;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class TrackExceptions
 {
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         try {
             return $next($request);

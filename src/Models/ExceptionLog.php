@@ -14,7 +14,10 @@ class ExceptionLog extends Model
         'context'
     ];
 
-    protected $casts = [
-        'context' => 'array'
-    ];
+    protected function casts(): array
+    {
+        return [
+            'context' => 'array',
+        ];
+    }
 }
