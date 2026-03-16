@@ -12,7 +12,13 @@ class ClearOldExceptions extends Command
 
     public function handle(): int
     {
-        $days = config('exception-tracker.max_days');
+        $days = (int) config('exception-tracker.max_days', 30);
+
+        if ($days < 1) {
+            $this->warn('exception-tracker.max_days must be a positive integer. Skipping cleanup.');
+            return;
+        }
+
         $deleted = ExceptionLog::where('created_at', '<', now()->subDays($days))->delete();
         $this->info("$deleted old exception logs deleted.");
 
