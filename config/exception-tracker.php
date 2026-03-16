@@ -98,9 +98,15 @@ return [
         'cookie',
         'api_key',
         'api_secret',
+        'access_token',
+        'refresh_token',
+        'private_key',
+        'x-api-key',
         'credit_card',
         'card_number',
         'cvv',
+        'ssn',
+        'social_security',
     ],
 
     /*
@@ -119,8 +125,44 @@ return [
     |--------------------------------------------------------------------------
     |
     | Number of days to retain exception logs in the database.
+    | Must be a positive integer.
     |
     */
     'max_days' => 30,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Route Middleware
+    |--------------------------------------------------------------------------
+    |
+    | Middleware applied to the exception tracker API routes.
+    | Add authentication middleware here to protect the routes, e.g.:
+    |   ['auth:sanctum']
+    |   ['auth', 'can:view-exception-logs']
+    |
+    */
+    'route_middleware' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | Maximum number of requests allowed per minute for the API routes.
+    | Set to 0 or null to disable rate limiting.
+    |
+    */
+    'rate_limit' => env('EXCEPTION_TRACKER_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Max Results Per Page
+    |--------------------------------------------------------------------------
+    |
+    | Maximum number of exception logs returned per page from the API.
+    | Prevents excessive data exposure from large page sizes.
+    |
+    */
+    'max_per_page' => 100,
 
 ];
